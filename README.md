@@ -47,8 +47,8 @@ Args:
 
 1. port: `SerialPort&`
 1. buffer: `char*`
-1. length: int
-1. timeout: int
+1. length: `int`
+1. timeout: `int`
 
 The <buffer> should be at least <length> in size.
 
