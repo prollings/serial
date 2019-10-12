@@ -83,91 +83,6 @@ namespace serial {
 		using SysSettings = termios;
 #endif
 
-		void set_baud_rate(SysSettings& ss, BaudRate br) {
-#if SERIAL_OS_WINDOWS
-#elif SERIAL_OS_LINUX
-			cfsetospeed(&ss, br);
-			cfsetispeed(&ss, br);
-#endif
-		}
-
-		void set_char_size(SysSettings& ss, CharSize cs) {
-#if SERIAL_OS_WINDOWS
-#elif SERIAL_OS_LINUX
-			switch (cs) {
-				case CharSize::CS5:
-					ss.c_cflag |= CS5;
-				case CharSize::CS6:
-					ss.c_cflag |= CS6;
-				case CharSize::CS7:
-					ss.c_cflag |= CS7;
-				case CharSize::CS8:
-					ss.c_cflag |= CS8;
-			}
-#endif
-		}
-
-		void set_flow_control(SysSettings& ss, FlowControl fc) {
-#if SERIAL_OS_WINDOWS
-#elif SERIAL_OS_LINUX
-			switch (fc) {
-				case FlowControl::NONE:
-					ss.c_iflag &= ~(IXOFF | IXON);
-					ss.c_cflag &= ~CRTSCTS;
-					break;
-				case FlowControl::SOFTWARE:
-					ss.c_iflag |= IXOFF | IXON;
-					ss.c_cflag &= ~CRTSCTS;
-					break;
-				case FlowControl::HARDWARE:
-					ss.c_iflag &= ~(IXOFF | IXON);
-					ss.c_cflag |= CRTSCTS;
-					break;
-			}
-#endif
-		}
-
-		void set_parity(SysSettings& ss, Parity p) {
-#if SERIAL_OS_WINDOWS
-#elif SERIAL_OS_LINUX
-			switch (p) {
-				case Parity::NONE:
-					ss.c_iflag |= IGNPAR;
-					ss.c_cflag &= ~(PARENB | PARODD);
-					break;
-				case Parity::EVEN:
-					ss.c_iflag &= ~(IGNPAR | PARMRK);
-					ss.c_iflag |= INPCK;
-					ss.c_cflag |= PARENB;
-					ss.c_cflag &= ~PARODD;
-					break;
-				case Parity::ODD:
-					ss.c_iflag &= ~(IGNPAR | PARMRK);
-					ss.c_iflag |= INPCK;
-					ss.c_cflag |= (PARENB | PARODD);
-					break;
-			}
-#endif
-		}
-
-		void set_stop_bits(SysSettings& ss, StopBits sb) {
-#if SERIAL_OS_WINDOWS
-#elif SERIAL_OS_LINUX
-			switch (sb) {
-				case StopBits::ONE:
-					ss.c_cflag &= ~CSTOPB;
-					break;
-				case StopBits::TWO:
-					ss.c_cflag |= CSTOPB;
-					break;
-				case StopBits::ONE_POINT_FIVE:
-					// linux no supporty
-					break;
-			}
-#endif
-		}
-	} // settings
-
 #if SERIAL_OS_WINDOWS
 	using NativeHandle = int;
 #elif SERIAL_OS_LINUX
@@ -205,11 +120,11 @@ namespace serial {
 
 		cfsetospeed(&tty, (speed_t)settings.baud_rate);
 		cfsetispeed(&tty, (speed_t)settings.baud_rate);
-
 		// set defaults
 		tty.c_cflag |= (CLOCAL | CREAD);
 		tty.c_iflag |= IGNPAR;
 
+		// raw mode
 		cfmakeraw(&tty);
 		// tty.c_cflag &= ~(CSIZE | PARENB);
 		// tty.c_iflag &= ~(
@@ -220,11 +135,69 @@ namespace serial {
 		// tty.c_lflag &= ~(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
 		// tty.c_cflag |= CS8;
 
-		set_baud_rate(tty, settings.baud_rate);
-		set_char_size(tty, settings.char_size);
-		set_partiy(tty, settings.parity);
-		set_stop_bits(tty, settings.stop_bits);
-		set_flow_control(tty, settings.flow_control);
+		// baud
+		cfsetospeed(&tty, settings.baud_rate);
+		cfsetispeed(&tty, settings.baud_rate);
+
+		// char size
+		switch (settings.char_size) {
+			case CharSize::CS5:
+				tty.c_cflag |= CS5;
+			case CharSize::CS6:
+				tty.c_cflag |= CS6;
+			case CharSize::CS7:
+				tty.c_cflag |= CS7;
+			case CharSize::CS8:
+				tty.c_cflag |= CS8;
+		}
+
+		// flow control
+		switch (settings.flow_control) {
+			case FlowControl::NONE:
+				tty.c_iflag &= ~(IXOFF | IXON);
+				tty.c_cflag &= ~CRTSCTS;
+				break;
+			case FlowControl::SOFTWARE:
+				tty.c_iflag |= IXOFF | IXON;
+				tty.c_cflag &= ~CRTSCTS;
+				break;
+			case FlowControl::HARDWARE:
+				tty.c_iflag &= ~(IXOFF | IXON);
+				tty.c_cflag |= CRTSCTS;
+				break;
+		}
+
+		// parity
+		switch (settings.parity) {
+			case Parity::NONE:
+				tty.c_iflag |= IGNPAR;
+				tty.c_cflag &= ~(PARENB | PARODD);
+				break;
+			case Parity::EVEN:
+				tty.c_iflag &= ~(IGNPAR | PARMRK);
+				tty.c_iflag |= INPCK;
+				tty.c_cflag |= PARENB;
+				tty.c_cflag &= ~PARODD;
+				break;
+			case Parity::ODD:
+				tty.c_iflag &= ~(IGNPAR | PARMRK);
+				tty.c_iflag |= INPCK;
+				tty.c_cflag |= (PARENB | PARODD);
+				break;
+		}
+
+		// stop bits
+		switch (settings.stop_bits) {
+			case StopBits::ONE:
+				tty.c_cflag &= ~CSTOPB;
+				break;
+			case StopBits::TWO:
+				tty.c_cflag |= CSTOPB;
+				break;
+			case StopBits::ONE_POINT_FIVE:
+				// linux no supporty
+				break;
+		}
 
 		if (tcsetattr(fd, TCSANOW, &tty) != 0) {
 			// error out
