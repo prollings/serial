@@ -78,12 +78,6 @@ namespace serial {
 		};
 
 #if SERIAL_OS_WINDOWS
-		using SysSettings = DCB;
-#elif SERIAL_OS_LINUX
-		using SysSettings = termios;
-#endif
-
-#if SERIAL_OS_WINDOWS
 	using NativeHandle = int;
 #elif SERIAL_OS_LINUX
 	using NativeHandle = int;
