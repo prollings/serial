@@ -112,8 +112,6 @@ namespace serial {
 			// error out
 		}
 
-		cfsetospeed(&tty, (speed_t)settings.baud_rate);
-		cfsetispeed(&tty, (speed_t)settings.baud_rate);
 		// set defaults
 		tty.c_cflag |= (CLOCAL | CREAD);
 		tty.c_iflag |= IGNPAR;
