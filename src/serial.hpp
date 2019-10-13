@@ -115,7 +115,7 @@ namespace serial {
 	SerialPort open(char* device) {
 #if SERIAL_OS_WINDOWS
 #elif SERIAL_OS_LINUX
-		int fd = open(device.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
+		int fd = open(device.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
 		if (fd < 0) {
 			// error out
 		}
