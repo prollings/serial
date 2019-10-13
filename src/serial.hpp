@@ -308,6 +308,12 @@ namespace serial {
 		int written_count = 0;
 
 		while (written_count < length) {
+			int bytes_written = ::write(
+				sp.handle,
+				&buf[written_count],
+				length - written_count
+			);
+
 			int ready = select(sp.handle + 1, nullptr, &wfds, nullptr, tvp);
 			if (ready == -1) {
 				// error
@@ -316,11 +322,7 @@ namespace serial {
 				break;
 			}
 			if (FD_ISSET(sp.handle, &wfds)) {
-				int bytes_written = write(
-					sp.handle,
-					buf[written_count],
-					length - written_count
-				);
+				written_count += bytes_written;
 			} else {
 				// cancelled
 			}
