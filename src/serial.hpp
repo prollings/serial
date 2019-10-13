@@ -46,28 +46,6 @@ extern "C" {
 
 namespace serial {
 	namespace settings {
-		enum class BaudRate {
-			B0,
-			B50,
-			B75,
-			B110,
-			B134,
-			B150,
-			B200,
-			B300,
-			B600,
-			B1200,
-			B1800,
-			B2400,
-			B4800,
-			B9600,
-			B19200,
-			B38400,
-			B57600,
-			B115200,
-			B230400,
-		};
-
 		enum class CharSize {
 			CS5,
 			CS6,
@@ -94,7 +72,7 @@ namespace serial {
 		};
 
 		struct Settings {
-			BaudRate    baud_rate    = BaudRate::B9600;
+			uint64_t    baud_rate    = 9600;
 			CharSize    char_size    = CharSize::CS8;
 			FlowControl flow_control = FlowControl::NONE;
 			Parity      parity       = Parity::NONE;
@@ -144,8 +122,30 @@ namespace serial {
 		cfmakeraw(&tty);
 
 		// baud
-		cfsetospeed(&tty, settings.baud_rate);
-		cfsetispeed(&tty, settings.baud_rate);
+		int br = B0;
+		switch (settings.baud_rate) {
+			case 0:      br = B0;      break;
+			case 50:     br = B50;     break;
+			case 75:     br = B75;     break;
+			case 110:    br = B110;    break;
+			case 134:    br = B134;    break;
+			case 150:    br = B150;    break;
+			case 200:    br = B200;    break;
+			case 300:    br = B300;    break;
+			case 600:    br = B600;    break;
+			case 1200:   br = B1200;   break;
+			case 1800:   br = B1800;   break;
+			case 2400:   br = B2400;   break;
+			case 4800:   br = B4800;   break;
+			case 9600:   br = B9600;   break;
+			case 19200:  br = B19200;  break;
+			case 38400:  br = B38400;  break;
+			case 57600:  br = B57600;  break;
+			case 115200: br = B115200; break;
+			case 230400: br = B230400; break;
+		}
+		cfsetospeed(&tty, br);
+		cfsetispeed(&tty, br);
 
 		// char size
 		switch (settings.char_size) {
