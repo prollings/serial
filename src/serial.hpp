@@ -124,25 +124,37 @@ namespace serial {
 		// baud
 		int br = 0;
 		switch (settings.baud_rate) {
-			case 0:      br = B0;      break;
-			case 50:     br = B50;     break;
-			case 75:     br = B75;     break;
-			case 110:    br = B110;    break;
-			case 134:    br = B134;    break;
-			case 150:    br = B150;    break;
-			case 200:    br = B200;    break;
-			case 300:    br = B300;    break;
-			case 600:    br = B600;    break;
-			case 1200:   br = B1200;   break;
-			case 1800:   br = B1800;   break;
-			case 2400:   br = B2400;   break;
-			case 4800:   br = B4800;   break;
-			case 9600:   br = B9600;   break;
-			case 19200:  br = B19200;  break;
-			case 38400:  br = B38400;  break;
-			case 57600:  br = B57600;  break;
-			case 115200: br = B115200; break;
-			case 230400: br = B230400; break;
+			case 0:       br = B0;       break;
+			case 50:      br = B50;      break;
+			case 75:      br = B75;      break;
+			case 110:     br = B110;     break;
+			case 134:     br = B134;     break;
+			case 150:     br = B150;     break;
+			case 200:     br = B200;     break;
+			case 300:     br = B300;     break;
+			case 600:     br = B600;     break;
+			case 1200:    br = B1200;    break;
+			case 1800:    br = B1800;    break;
+			case 2400:    br = B2400;    break;
+			case 4800:    br = B4800;    break;
+			case 9600:    br = B9600;    break;
+			case 19200:   br = B19200;   break;
+			case 38400:   br = B38400;   break;
+			case 57600:   br = B57600;   break;
+			case 115200:  br = B115200;  break;
+			case 230400:  br = B230400;  break;
+			case 460800:  br = B460800;  break;
+			case 500000:  br = B500000;  break;
+			case 576000:  br = B576000;  break;
+			case 921600:  br = B921600;  break;
+			case 1000000: br = B1000000; break;
+			case 1152000: br = B1152000; break;
+			case 1500000: br = B1500000; break;
+			case 2000000: br = B2000000; break;
+			case 2500000: br = B2500000; break;
+			case 3000000: br = B3000000; break;
+			case 3500000: br = B3500000; break;
+			case 4000000: br = B4000000; break;
 			default:
 				//error
 				break;
