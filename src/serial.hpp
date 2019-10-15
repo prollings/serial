@@ -249,6 +249,14 @@ namespace serial {
 #endif
 	}
 
+	void clean_output(SerialPort& sp) {
+#if SERIAL_OS_WINDOWS
+		PurgeComm(sp.handle, PURGE_TXCLEAR | PURGE_TXABORT);
+#elif SERIAL_OS_LINUX
+		tcflush(sp.handle, TCOFLUSH);
+#endif
+	}
+
 	int read(SerialPort& sp, char* buf, int length, int timeout) {
 #if SERIAL_OS_WINDOWS
 #elif SERIAL_OS_LINUX
