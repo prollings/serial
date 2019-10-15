@@ -37,7 +37,11 @@ Return the number of bytes waiting to be read off the serial port.
 
 ## `clean_input`
 
-Discard all data that is currently waiting to be read.
+Discard all data that is currently waiting to be read from the port.
+
+## `clean_output`
+
+Discard all data that is waiting to be written to the port.
 
 ## `read`
 
