@@ -245,7 +245,7 @@ namespace serial {
 #if SERIAL_OS_WINDOWS
 		PurgeComm(sp.handle, PURGE_RXCLEAR | PURGE_RXABORT);
 #elif SERIAL_OS_LINUX
-		tcflush(handle, TCIOFLUSH);
+		tcflush(sp.handle, TCIFLUSH);
 #endif
 	}
 
