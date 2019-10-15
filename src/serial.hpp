@@ -228,6 +228,15 @@ namespace serial {
 #endif
 	}
 
+	void set_low_latency(SerialPort& sp, bool ll) {
+#if SERIAL_OS_WINDOWS
+#elif SERIAL_OS_LINUX
+		serial_struct ser;
+		ioctl(sp.handle, TIOCGSERIAL, &serial);
+		serial.flags |= ll ? ASYNC_LOW_LATENCY : ~ASYNC_LOW_LATENCY;
+#endif
+	}
+
 	int in_waiting(SerialPort& sp) {
 #if SERIAL_OS_WINDOWS
 		DWORD flags;
