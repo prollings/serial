@@ -22,39 +22,36 @@ An object of this type should be provided to the `configure` to apply the settin
 The type has sane defaults that apply to most devices.
 Usually the only thing that needs changing is the baud rate.
 
-## Open a port with `open`
+## `open(char* path)`
 
 Provide a valid path to a serial port device and a `SerialPort` object will be returned.
 
-## `configure` an open port
+## `configure(SerialPort& sp, Settings settings)`
 
 After opening a port, it should be configured.
 Usually the only setting that needs to be changed is the baud rate.
 
-## `in_waiting`
+## `set_low_latency(SerialPort& sp, bool low_latency)`
+
+Sets the device latency to 1ms if `low_latency` is true.
+
+## `in_waiting(SerialPort& sp)`
 
 Return the number of bytes waiting to be read off the serial port.
 
-## `clean_input`
+## `clean_input(SerialPort& sp)`
 
 Discard all data that is currently waiting to be read from the port.
 
-## `clean_output`
+## `clean_output(SerialPort& sp)`
 
 Discard all data that is waiting to be written to the port.
 
-## `read`
+## `read(SerialPort& sp, char* buf, int length, int timeout)`
 
 Read bytes from the serial port.
 
-Args:
-
-1. port: `SerialPort&`
-1. buffer: `char*`
-1. length: `int`
-1. timeout: `int`
-
-The <buffer> should be at least <length> in size.
+The <buf> should be at least <length> in size.
 
 Timeout:
 
@@ -62,16 +59,9 @@ Timeout:
 * `-1`: the read will block until <length> bytes have been read.
 * `> 0`: the read will block until either <length> bytes have been read, or <timeout> milliseconds have passed.
 
-## `write`
+## `write(SerialPort& sp, char* buf, int length, int timeout)`
 
-Write bytes to serial port
-
-Args:
-
-1. port: `SerialPort&`
-1. buffer: `char*`
-1. length: `int`
-1. timeout: `int`
+Write bytes to serial port.
 
 Again, the <buffer> should be at least <length> in size.
 
