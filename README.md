@@ -51,18 +51,18 @@ Discard all data that is waiting to be written to the port.
 
 Read bytes from the serial port.
 
-The <buf> should be at least <length> in size.
+The `buf` should be at least `length` in size.
 
 Timeout:
 
 * `0`: the read will not block but return instantly with the number of bytes read. The buffer will be filled by any bytes read.
-* `-1`: the read will block until <length> bytes have been read.
-* `> 0`: the read will block until either <length> bytes have been read, or <timeout> milliseconds have passed.
+* `-1`: the read will block until `length` bytes have been read.
+* `> 0`: the read will block until either `length` bytes have been read, or `timeout` milliseconds have passed.
 
 ## `write(SerialPort& sp, char* buf, int length, int timeout)`
 
 Write bytes to serial port.
 
-Again, the <buffer> should be at least <length> in size.
+Again, the `buf` should be at least `length` in size.
 
-The rules for <timeout> are the same as with `read`.
+The rules for `timeout` are the same as with `read`.
