@@ -97,9 +97,9 @@ namespace serial {
 		if (fd < 0) {
 			// error out
 		}
-		return { 
-			.handle: fd,
-			.settings: Settings(),
+		return SerialPort {
+			.handle = fd,
+			.settings = Settings(),
 		};
 #endif
 	}
