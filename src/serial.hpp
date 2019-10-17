@@ -230,6 +230,44 @@ namespace serial {
 
 	void set_low_latency(SerialPort& sp, bool ll) {
 #if SERIAL_OS_WINDOWS
+		auto connected_devices = /* :( */;
+		HKEY key;
+		TCHAR* keypath = (TCHAR*)"SYSTEM\\CurrentControlSet\\Enum\\FTDIBUS";
+		long r = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keypath, 0, KEY_READ, &key);
+		if (r) {
+			// no drives
+		}
+
+		int index = 0;
+		HKEY read_only_key = 0, param_key = 0;
+		for (auto& subkey : connected_devs) {
+			TCHAR param_path[100];
+			snprintf(param_path, 100, "%s\\0000\\Device Parameters", &subkey[0]);
+			r = RegOpenKeyEx(key, param_path, 0, KEY_READ, &read_only_key);
+			if (r) {
+				continue;
+			}
+			DWORD reg_port_name_size = 10;
+			TCHAR reg_port_name[reg_port_name_size];
+			DWORD type;
+			r = RegQueryValueEx(
+				read_only_key, "PortName", NULL, &type, (LPBYTE)&req_port_name, &reg_port_name_size
+			);
+			bool names_match = strcmp(&port_name[0], reg_port_name) == 0;
+			if (!r && names_match) {
+				r = RegOpenKeyEx(read_only_key, NULL, 0, KEY_READ | KEY_SET_VALUE, &param_key);
+				if (r) {
+					// admin priv error
+				}
+			}
+			RegCloseKey(read_only_key);
+			if (param_key) {
+				break;
+			}
+		}
+		RegCloseKey(key);
+		return param_key;
+	}
 #elif SERIAL_OS_LINUX
 		serial_struct ser;
 		ioctl(sp.handle, TIOCGSERIAL, &serial);
