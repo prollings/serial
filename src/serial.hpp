@@ -161,6 +161,83 @@ namespace serial {
 
 	void configure(SerialPort& sp, Settings settings) {
 #if SERIAL_OS_WINDOWS
+		DCB dcb;
+		dcb.DCBLength = sizeof(dcb);
+		if (!GetCommState(handle, &dcb)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
+
+		// baud
+		dcb.BaudRate = settings.baud_rate;
+
+		// flow
+		dcb.fOutxCtsFlow = false;
+		dcb.fOutxDsrFlow = false;
+		dcb.fTXContinueOnXoff = true;
+		dcb.fDtrControl = DTR_CONTROL_ENABLE;
+		dcb.fDsrSensitivity = false;
+		dcb.fOutX = false;
+		dcb.fInX = false;
+		dcb.fRtsControl = RTS_CONTROL_ENABLE;
+		if (settings.flow_control == FlowControl::SOFTWARE) {
+			dcb.fOutX = true;
+			dcb.fInX = true;
+		} else if (settings.flow_control == FlowControl::HARDWARE) {
+			dcb.fOutxCtsFlow = true;
+			dcb.fRtsControl = RTS_CONTROL_HANDSHAKE;
+		}
+
+		// parity
+		switch (settings.parity) {
+			case Parity::NONE:
+				dcb.fParity = false;
+				dcb.Parity = NOPARITY;
+				break;
+			case Parity::ODD:
+				dcb.fParity = true;
+				dcb.Parity = ODDPARITY;
+				break;
+			case Parity::EVEN:
+				dcb.fParity = true;
+				dcb.Parity = EVENPARITY;
+				break;
+		}
+
+		// stop bits
+		switch (settings.stop_bits) {
+			case StopBits::ONE:
+				dcb.StopBits = ONESTOPBIT;
+				break;
+			case StopBits::ONEPOINTFIVE:
+				dcb.StopBits = ONE5STOPBITS;
+				break;
+			case StopBits::TWO:
+				dcb.StopBits = TWOSTOPBITS;
+				break;
+		}
+
+		// char size
+		switch (settings.char_size) {
+			case CharSize::CS5:
+				dcb.ByteSize = 5;
+				break;
+			case CharSize::CS6:
+				dcb.ByteSize = 6;
+				break;
+			case CharSize::CS7:
+				dcb.ByteSize = 7;
+				break;
+			case CharSize::CS8:
+				dcb.ByteSize = 8;
+				break;
+		}
+		if (!SetCommState(handle, &dcb)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
 #elif SERIAL_OS_LINUX
 		termios tty;
 		auto fd = sp.handle;
