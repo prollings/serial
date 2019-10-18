@@ -92,6 +92,61 @@ namespace serial {
 
 	SerialPort open(char* device) {
 #if SERIAL_OS_WINDOWS
+		HANDLE handle = CreateFileA(
+			device, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0
+		);
+
+		if (handle == INVALID_HANDLE_VALUE) {
+			DWORD err = GetLastError();
+			// error out
+		}
+		DCB dcb;
+		dcb.DCBLength = sizeof(dcb);
+		if (!GetCommState(handle, &dcb)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
+
+		// defaults
+		dcb.fBinary = true;
+		dcb.fNull = false;
+		dcb.fAbortOnError = false;
+		dcb.BaudRate = 0;
+		dcb.ByteSize = 8;
+		dcb.fOutxCtsFlow = false;
+		dcb.fOutxDsrFlow = false;
+		dcb.fDsrSensitivity = false;
+		dcb.fOutX = false;
+		dcb.fInx = false;
+		dcb.fRtsControl = DTR_CONTROL_DISABLE;
+		dcb.fParity = false;
+		dcb.Parity = NOPARITY;
+		dcb.StopBits = ONESTOPBIT;
+		if (!SetCommState(handle, &dcb)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
+
+		COMMTIMEOUTS timeouts = {
+			.ReadIntervalTimeout = 1,
+			.ReadTotalTimeoutMultiplier = 0,
+			.ReadTotalTimeoutConstant = 0,
+			.WriteTotalTimeoutMultiplier = 0,
+			.WriteTotalTimeoutConstant = 0,
+		};
+
+		if (!SetCommTimeouts(handles, &timeouts)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
+
+		return SerialPort {
+			.handle = handle,
+			.settings = Settings(),
+		};
 #elif SERIAL_OS_LINUX
 		int fd = open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);
 		if (fd < 0) {
