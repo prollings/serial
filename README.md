@@ -1,5 +1,7 @@
+# DON'T USE THIS LIBRARY IT DOESN'T WORK YET
+
 # serial
-Single header serial library for Windows and Linux.
+Header-only serial library for Windows and Linux.
 
 # API
 
