@@ -93,7 +93,7 @@ namespace serial {
 	SerialPort open(char* device) {
 #if SERIAL_OS_WINDOWS
 		HANDLE handle = CreateFileA(
-			device, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, 0
+			device, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0
 		);
 
 		if (handle == INVALID_HANDLE_VALUE) {
@@ -499,10 +499,7 @@ namespace serial {
 			// error out
 		}
 		DWORD written = 0;
-		OVERLAPPED overlapped;
-		overlapped.Offset = 0xFFFF'FFFF;
-		overlapped.OffsetHigh = 0xFFFF'FFFF;
-		bool status = WriteFile(sp.handle, buf, length, &written, &overlapped);
+		bool status = WriteFile(sp.handle, buf, length, &written, NULL);
 #elif SERIAL_OS_LINUX
 		if (timeout == 0) {
 			int wlen = ::write(sp.handle, buf, length);
