@@ -486,6 +486,23 @@ namespace serial {
 
 	void write(SerialPort& sp, char* buf, int length, int timeout) {
 #if SERIAL_OS_WINDOWS
+		COMMTIMEOUTS timeouts = {
+			ReadIntervalTimeout = timeout,
+			ReadTotalTimeoutConstant = timeout,
+			ReadTotalTimeoutMultiplier = 0,
+			WriteTotalTimeoutConstant = timeout,
+			WriteTotalTimeoutMultiplier = 0,
+		};
+		if (!SetCommTimeouts(handles, &timeouts)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
+		DWORD written = 0;
+		OVERLAPPED overlapped;
+		overlapped.Offset = 0xFFFF'FFFF;
+		overlapped.OffsetHigh = 0xFFFF'FFFF;
+		bool status = WriteFile(sp.handle, buf, length, &written, &overlapped);
 #elif SERIAL_OS_LINUX
 		if (timeout == 0) {
 			int wlen = ::write(sp.handle, buf, length);
