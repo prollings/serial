@@ -92,6 +92,61 @@ namespace serial {
 
 	SerialPort open(char* device) {
 #if SERIAL_OS_WINDOWS
+		HANDLE handle = CreateFileA(
+			device, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0
+		);
+
+		if (handle == INVALID_HANDLE_VALUE) {
+			DWORD err = GetLastError();
+			// error out
+		}
+		DCB dcb;
+		dcb.DCBLength = sizeof(dcb);
+		if (!GetCommState(handle, &dcb)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
+
+		// defaults
+		dcb.fBinary = true;
+		dcb.fNull = false;
+		dcb.fAbortOnError = false;
+		dcb.BaudRate = 0;
+		dcb.ByteSize = 8;
+		dcb.fOutxCtsFlow = false;
+		dcb.fOutxDsrFlow = false;
+		dcb.fDsrSensitivity = false;
+		dcb.fOutX = false;
+		dcb.fInx = false;
+		dcb.fRtsControl = DTR_CONTROL_DISABLE;
+		dcb.fParity = false;
+		dcb.Parity = NOPARITY;
+		dcb.StopBits = ONESTOPBIT;
+		if (!SetCommState(handle, &dcb)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
+
+		COMMTIMEOUTS timeouts = {
+			.ReadIntervalTimeout = 1,
+			.ReadTotalTimeoutMultiplier = 0,
+			.ReadTotalTimeoutConstant = 0,
+			.WriteTotalTimeoutMultiplier = 0,
+			.WriteTotalTimeoutConstant = 0,
+		};
+
+		if (!SetCommTimeouts(handles, &timeouts)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
+
+		return SerialPort {
+			.handle = handle,
+			.settings = Settings(),
+		};
 #elif SERIAL_OS_LINUX
 		int fd = open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);
 		if (fd < 0) {
@@ -106,6 +161,83 @@ namespace serial {
 
 	void configure(SerialPort& sp, Settings settings) {
 #if SERIAL_OS_WINDOWS
+		DCB dcb;
+		dcb.DCBLength = sizeof(dcb);
+		if (!GetCommState(handle, &dcb)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
+
+		// baud
+		dcb.BaudRate = settings.baud_rate;
+
+		// flow
+		dcb.fOutxCtsFlow = false;
+		dcb.fOutxDsrFlow = false;
+		dcb.fTXContinueOnXoff = true;
+		dcb.fDtrControl = DTR_CONTROL_ENABLE;
+		dcb.fDsrSensitivity = false;
+		dcb.fOutX = false;
+		dcb.fInX = false;
+		dcb.fRtsControl = RTS_CONTROL_ENABLE;
+		if (settings.flow_control == FlowControl::SOFTWARE) {
+			dcb.fOutX = true;
+			dcb.fInX = true;
+		} else if (settings.flow_control == FlowControl::HARDWARE) {
+			dcb.fOutxCtsFlow = true;
+			dcb.fRtsControl = RTS_CONTROL_HANDSHAKE;
+		}
+
+		// parity
+		switch (settings.parity) {
+			case Parity::NONE:
+				dcb.fParity = false;
+				dcb.Parity = NOPARITY;
+				break;
+			case Parity::ODD:
+				dcb.fParity = true;
+				dcb.Parity = ODDPARITY;
+				break;
+			case Parity::EVEN:
+				dcb.fParity = true;
+				dcb.Parity = EVENPARITY;
+				break;
+		}
+
+		// stop bits
+		switch (settings.stop_bits) {
+			case StopBits::ONE:
+				dcb.StopBits = ONESTOPBIT;
+				break;
+			case StopBits::ONEPOINTFIVE:
+				dcb.StopBits = ONE5STOPBITS;
+				break;
+			case StopBits::TWO:
+				dcb.StopBits = TWOSTOPBITS;
+				break;
+		}
+
+		// char size
+		switch (settings.char_size) {
+			case CharSize::CS5:
+				dcb.ByteSize = 5;
+				break;
+			case CharSize::CS6:
+				dcb.ByteSize = 6;
+				break;
+			case CharSize::CS7:
+				dcb.ByteSize = 7;
+				break;
+			case CharSize::CS8:
+				dcb.ByteSize = 8;
+				break;
+		}
+		if (!SetCommState(handle, &dcb)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
 #elif SERIAL_OS_LINUX
 		termios tty;
 		auto fd = sp.handle;
@@ -230,6 +362,44 @@ namespace serial {
 
 	void set_low_latency(SerialPort& sp, bool ll) {
 #if SERIAL_OS_WINDOWS
+		auto connected_devices = /* :( */;
+		HKEY key;
+		TCHAR* keypath = (TCHAR*)"SYSTEM\\CurrentControlSet\\Enum\\FTDIBUS";
+		long r = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keypath, 0, KEY_READ, &key);
+		if (r) {
+			// no drives
+		}
+
+		int index = 0;
+		HKEY read_only_key = 0, param_key = 0;
+		for (auto& subkey : connected_devs) {
+			TCHAR param_path[100];
+			snprintf(param_path, 100, "%s\\0000\\Device Parameters", &subkey[0]);
+			r = RegOpenKeyEx(key, param_path, 0, KEY_READ, &read_only_key);
+			if (r) {
+				continue;
+			}
+			DWORD reg_port_name_size = 10;
+			TCHAR reg_port_name[reg_port_name_size];
+			DWORD type;
+			r = RegQueryValueEx(
+				read_only_key, "PortName", NULL, &type, (LPBYTE)&req_port_name, &reg_port_name_size
+			);
+			bool names_match = strcmp(&port_name[0], reg_port_name) == 0;
+			if (!r && names_match) {
+				r = RegOpenKeyEx(read_only_key, NULL, 0, KEY_READ | KEY_SET_VALUE, &param_key);
+				if (r) {
+					// admin priv error
+				}
+			}
+			RegCloseKey(read_only_key);
+			if (param_key) {
+				break;
+			}
+		}
+		RegCloseKey(key);
+		return param_key;
+	}
 #elif SERIAL_OS_LINUX
 		serial_struct ser;
 		ioctl(sp.handle, TIOCGSERIAL, &serial);
@@ -268,6 +438,21 @@ namespace serial {
 
 	int read(SerialPort& sp, char* buf, int length, int timeout) {
 #if SERIAL_OS_WINDOWS
+		COMMTIMEOUTS timeouts = {
+			ReadIntervalTimeout = timeout,
+			ReadTotalTimeoutConstant = timeout,
+			ReadTotalTimeoutMultiplier = 0,
+			WriteTotalTimeoutConstant = timeout,
+			WriteTotalTimeoutMultiplier = 0,
+		};
+		if (!SetCommTimeouts(handles, &timeouts)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
+		DWORD bytes_read = 0;
+		ReadFile(sp.handle, buf, length, &bytes_read, NULL);
+		return bytes_read;
 #elif SERIAL_OS_LINUX
 		if (timeout == 0) {
 			// non-blocking
@@ -316,6 +501,20 @@ namespace serial {
 
 	void write(SerialPort& sp, char* buf, int length, int timeout) {
 #if SERIAL_OS_WINDOWS
+		COMMTIMEOUTS timeouts = {
+			ReadIntervalTimeout = timeout,
+			ReadTotalTimeoutConstant = timeout,
+			ReadTotalTimeoutMultiplier = 0,
+			WriteTotalTimeoutConstant = timeout,
+			WriteTotalTimeoutMultiplier = 0,
+		};
+		if (!SetCommTimeouts(handles, &timeouts)) {
+			DWORD last_error = GetLastError();
+			CloseHandle(handle);
+			// error out
+		}
+		DWORD written = 0;
+		bool status = WriteFile(sp.handle, buf, length, &written, NULL);
 #elif SERIAL_OS_LINUX
 		if (timeout == 0) {
 			int wlen = ::write(sp.handle, buf, length);
