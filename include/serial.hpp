@@ -400,7 +400,7 @@ namespace serial {
 #endif
 	}
 
-	void clean_input(SerialPort& sp) {
+	void clear_input(SerialPort& sp) {
 #if SERIAL_OS_WINDOWS
 		PurgeComm(sp.handle, PURGE_RXCLEAR | PURGE_RXABORT);
 #elif SERIAL_OS_LINUX
@@ -408,7 +408,7 @@ namespace serial {
 #endif
 	}
 
-	void clean_output(SerialPort& sp) {
+	void clear_output(SerialPort& sp) {
 #if SERIAL_OS_WINDOWS
 		PurgeComm(sp.handle, PURGE_TXCLEAR | PURGE_TXABORT);
 #elif SERIAL_OS_LINUX

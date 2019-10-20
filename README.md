@@ -41,11 +41,11 @@ Sets the device latency to 1ms if `low_latency` is true.
 
 Return the number of bytes waiting to be read off the serial port.
 
-## `clean_input(SerialPort& sp)`
+## `clear_input(SerialPort& sp)`
 
 Discard all data that is currently waiting to be read from the port.
 
-## `clean_output(SerialPort& sp)`
+## `clear_output(SerialPort& sp)`
 
 Discard all data that is waiting to be written to the port.
 
