@@ -129,20 +129,6 @@ namespace serial {
 			// error out
 		}
 
-		COMMTIMEOUTS timeouts = {
-			.ReadIntervalTimeout = 1,
-			.ReadTotalTimeoutMultiplier = 0,
-			.ReadTotalTimeoutConstant = 0,
-			.WriteTotalTimeoutMultiplier = 0,
-			.WriteTotalTimeoutConstant = 0,
-		};
-
-		if (!SetCommTimeouts(handles, &timeouts)) {
-			DWORD last_error = GetLastError();
-			CloseHandle(handle);
-			// error out
-		}
-
 		return SerialPort {
 			.handle = handle,
 			.settings = Settings(),
