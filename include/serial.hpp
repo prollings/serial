@@ -382,8 +382,8 @@ namespace serial {
 	}
 #elif SERIAL_OS_LINUX
 		serial_struct ser;
-		ioctl(sp.handle, TIOCGSERIAL, &serial);
-		serial.flags |= ll ? ASYNC_LOW_LATENCY : ~ASYNC_LOW_LATENCY;
+		ioctl(sp.handle, TIOCGSERIAL, &ser);
+		ser.flags |= ll ? ASYNC_LOW_LATENCY : ~ASYNC_LOW_LATENCY;
 #endif
 	}
 
