@@ -46,13 +46,6 @@ extern "C" {
 #endif
 
 namespace serial {
-	enum class CharSize {
-		CS5,
-		CS6,
-		CS7,
-		CS8,
-	};
-
 	enum class FlowControl {
 		NONE,
 		SOFTWARE,
@@ -73,7 +66,7 @@ namespace serial {
 
 	struct Settings {
 		uint64_t    baud_rate    = 9600;
-		CharSize    char_size    = CharSize::CS8;
+		uint32_t    char_size    = 8;
 		FlowControl flow_control = FlowControl::NONE;
 		Parity      parity       = Parity::NONE;
 		StopBits    stop_bits    = StopBits::ONE;
@@ -205,20 +198,8 @@ namespace serial {
 		}
 
 		// char size
-		switch (settings.char_size) {
-			case CharSize::CS5:
-				dcb.ByteSize = 5;
-				break;
-			case CharSize::CS6:
-				dcb.ByteSize = 6;
-				break;
-			case CharSize::CS7:
-				dcb.ByteSize = 7;
-				break;
-			case CharSize::CS8:
-				dcb.ByteSize = 8;
-				break;
-		}
+		dcb.ByteSize = settings.char_size;
+
 		if (!SetCommState(handle, &dcb)) {
 			DWORD last_error = GetLastError();
 			CloseHandle(handle);
@@ -281,17 +262,20 @@ namespace serial {
 		cfsetispeed(&tty, br);
 
 		// char size
+		if (settings.char_size < 5 || settings.char_size > 8) {
+			// error out
+		}
 		switch (settings.char_size) {
-			case CharSize::CS5:
+			case 5:
 				tty.c_cflag |= CS5;
 				break;
-			case CharSize::CS6:
+			case 6:
 				tty.c_cflag |= CS6;
 				break;
-			case CharSize::CS7:
+			case 7:
 				tty.c_cflag |= CS7;
 				break;
-			case CharSize::CS8:
+			case 8:
 				tty.c_cflag |= CS8;
 				break;
 		}
