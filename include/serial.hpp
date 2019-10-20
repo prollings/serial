@@ -46,39 +46,38 @@ extern "C" {
 #endif
 
 namespace serial {
-	namespace settings {
-		enum class CharSize {
-			CS5,
-			CS6,
-			CS7,
-			CS8,
-		};
+	enum class CharSize {
+		CS5,
+		CS6,
+		CS7,
+		CS8,
+	};
 
-		enum class FlowControl {
-			NONE,
-			SOFTWARE,
-			HARDWARE,
-		};
+	enum class FlowControl {
+		NONE,
+		SOFTWARE,
+		HARDWARE,
+	};
 
-		enum class Parity {
-			NONE,
-			ODD,
-			EVEN,
-		};
+	enum class Parity {
+		NONE,
+		ODD,
+		EVEN,
+	};
 
-		enum class StopBits {
-			ONE,
-			ONE_POINT_FIVE,
-			TWO,
-		};
+	enum class StopBits {
+		ONE,
+		ONE_POINT_FIVE,
+		TWO,
+	};
 
-		struct Settings {
-			uint64_t    baud_rate    = 9600;
-			CharSize    char_size    = CharSize::CS8;
-			FlowControl flow_control = FlowControl::NONE;
-			Parity      parity       = Parity::NONE;
-			StopBits    stop_bits    = StopBits::ONE;
-		};
+	struct Settings {
+		uint64_t    baud_rate    = 9600;
+		CharSize    char_size    = CharSize::CS8;
+		FlowControl flow_control = FlowControl::NONE;
+		Parity      parity       = Parity::NONE;
+		StopBits    stop_bits    = StopBits::ONE;
+	};
 
 #if SERIAL_OS_WINDOWS
 	using NativeHandle = int;
