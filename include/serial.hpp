@@ -133,7 +133,7 @@ namespace serial {
 			.settings = Settings(),
 		};
 #elif SERIAL_OS_LINUX
-		int fd = open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);
+		int fd = ::open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);
 		if (fd < 0) {
 			// error out
 		}
@@ -463,7 +463,7 @@ namespace serial {
 				break;
 			}
 			if (FD_ISSET(sp.handle, &rfds)) {
-				int bytes_read = read(sp.handle, buf, length - read_count);
+				int bytes_read = ::read(sp.handle, buf, length - read_count);
 				if (bytes_read < 0) {
 					// error out
 				}
