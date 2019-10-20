@@ -40,6 +40,7 @@ extern "C" {
 #include <windows.h>
 }
 #elif SERIAL_OS_LINUX
+#include <linux/serial.h>
 #include <termios.h>
 #include <sys/ioctl.h>
 #endif
