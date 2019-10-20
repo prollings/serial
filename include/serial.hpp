@@ -65,8 +65,8 @@ namespace serial {
 	};
 
 	struct Settings {
-		uint64_t    baud_rate    = 9600;
-		uint32_t    char_size    = 8;
+		int         baud_rate    = 9600;
+		int         char_size    = 8;
 		FlowControl flow_control = FlowControl::NONE;
 		Parity      parity       = Parity::NONE;
 		StopBits    stop_bits    = StopBits::ONE;
