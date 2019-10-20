@@ -284,12 +284,16 @@ namespace serial {
 		switch (settings.char_size) {
 			case CharSize::CS5:
 				tty.c_cflag |= CS5;
+				break;
 			case CharSize::CS6:
 				tty.c_cflag |= CS6;
+				break;
 			case CharSize::CS7:
 				tty.c_cflag |= CS7;
+				break;
 			case CharSize::CS8:
 				tty.c_cflag |= CS8;
+				break;
 		}
 
 		// flow control
