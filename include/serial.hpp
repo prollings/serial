@@ -38,6 +38,7 @@ SOFTWARE.
 #if SERIAL_OS_WINDOWS
 extern "C" {
 #include <windows.h>
+#include <cstdio>
 }
 #elif SERIAL_OS_LINUX
 #include <unistd.h>
