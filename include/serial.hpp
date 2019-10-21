@@ -79,7 +79,7 @@ namespace serial {
 	};
 
 #if SERIAL_OS_WINDOWS
-	using NativeHandle = int;
+	using NativeHandle = HANDLE;
 #elif SERIAL_OS_LINUX
 	using NativeHandle = int;
 #endif
