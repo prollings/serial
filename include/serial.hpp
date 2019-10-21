@@ -138,12 +138,12 @@ namespace serial {
 					continue;
 				}
 				DWORD reg_port_name_size = 10;
-				TCHAR port_name[reg_port_name_size];
+				TCHAR reg_port_name[reg_port_name_size];
 				DWORD type;
 				r = RegQueryValueEx(
 					read_only_key, "PortName", NULL, &type, (LPBYTE)&reg_port_name, &reg_port_name_size
 				);
-				bool names_match = strcmp(&port_name[0], reg_port_name) == 0;
+				bool names_match = strcmp(port_name, reg_port_name) == 0;
 				if (!r && names_match) {
 					r = RegOpenKeyEx(read_only_key, NULL, 0, KEY_READ | KEY_SET_VALUE, &param_key);
 					if (r) {
