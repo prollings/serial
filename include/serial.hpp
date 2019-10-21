@@ -149,9 +149,9 @@ namespace serial {
 #if SERIAL_OS_WINDOWS
 		DCB dcb;
 		dcb.DCBlength = sizeof(dcb);
-		if (!GetCommState(handle, &dcb)) {
+		if (!GetCommState(sp.handle, &dcb)) {
 			DWORD last_error = GetLastError();
-			CloseHandle(handle);
+			CloseHandle(sp.handle);
 			// error out
 		}
 
@@ -207,9 +207,9 @@ namespace serial {
 		// char size
 		dcb.ByteSize = settings.char_size;
 
-		if (!SetCommState(handle, &dcb)) {
+		if (!SetCommState(sp.handle, &dcb)) {
 			DWORD last_error = GetLastError();
-			CloseHandle(handle);
+			CloseHandle(sp.handle);
 			// error out
 		}
 #elif SERIAL_OS_LINUX
@@ -426,9 +426,9 @@ namespace serial {
 			WriteTotalTimeoutConstant = timeout,
 			WriteTotalTimeoutMultiplier = 0,
 		};
-		if (!SetCommTimeouts(handles, &timeouts)) {
+		if (!SetCommTimeouts(sp.handle, &timeouts)) {
 			DWORD last_error = GetLastError();
-			CloseHandle(handle);
+			CloseHandle(sp.handle);
 			// error out
 		}
 		DWORD bytes_read = 0;
