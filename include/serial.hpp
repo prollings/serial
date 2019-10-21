@@ -100,7 +100,7 @@ namespace serial {
 			// error out
 		}
 		DCB dcb;
-		dcb.DCBLength = sizeof(dcb);
+		dcb.DCBlength = sizeof(dcb);
 		if (!GetCommState(handle, &dcb)) {
 			DWORD last_error = GetLastError();
 			CloseHandle(handle);
@@ -117,7 +117,7 @@ namespace serial {
 		dcb.fOutxDsrFlow = false;
 		dcb.fDsrSensitivity = false;
 		dcb.fOutX = false;
-		dcb.fInx = false;
+		dcb.fInX= false;
 		dcb.fRtsControl = DTR_CONTROL_DISABLE;
 		dcb.fParity = false;
 		dcb.Parity = NOPARITY;
@@ -147,7 +147,7 @@ namespace serial {
 	void configure(SerialPort& sp, Settings settings) {
 #if SERIAL_OS_WINDOWS
 		DCB dcb;
-		dcb.DCBLength = sizeof(dcb);
+		dcb.DCBlength = sizeof(dcb);
 		if (!GetCommState(handle, &dcb)) {
 			DWORD last_error = GetLastError();
 			CloseHandle(handle);
