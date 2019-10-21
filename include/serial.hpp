@@ -162,6 +162,7 @@ namespace serial {
 #endif
 
 	struct SerialPort {
+		char* path;
 		NativeHandle handle;
 		Settings settings;
 	};
@@ -206,6 +207,7 @@ namespace serial {
 		}
 
 		return SerialPort {
+			.path = device,
 			.handle = handle,
 			.settings = Settings(),
 		};
@@ -215,6 +217,7 @@ namespace serial {
 			// error out
 		}
 		return SerialPort {
+			.path = device,
 			.handle = fd,
 			.settings = Settings(),
 		};
