@@ -196,7 +196,7 @@ namespace serial {
 			case StopBits::ONE:
 				dcb.StopBits = ONESTOPBIT;
 				break;
-			case StopBits::ONEPOINTFIVE:
+			case StopBits::ONE_POINT_FIVE:
 				dcb.StopBits = ONE5STOPBITS;
 				break;
 			case StopBits::TWO:
