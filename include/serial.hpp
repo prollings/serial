@@ -422,7 +422,15 @@ namespace serial {
 
 	void set_low_latency(SerialPort& sp, bool ll) {
 #if SERIAL_OS_WINDOWS
-	}
+		HKEY key = detail::open_device_params(sp.path);
+		int r = RegSetValueEx(
+			key, "LatencyTimer", 0, REG_DWORD, (LPBYTE)&latency, sizeof(latency)
+		);
+		if (r)
+		{
+			// error out
+		}
+		RegCloseKey(key);
 #elif SERIAL_OS_LINUX
 		serial_struct ser;
 		ioctl(sp.handle, TIOCGSERIAL, &ser);
