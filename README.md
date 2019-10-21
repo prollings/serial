@@ -14,11 +14,11 @@ An object of this type is produced by `open` and must be passed through to all o
 
 A POD type that holds:
 
-* Baud rate
-* Character size
-* Flow control
-* Parity
-* Stop bits
+* Baud rate -> `int`
+* Character size -> `int` : `5-8`
+* Flow control -> `enum class FlowControl` : `NONE` | `SOFTWARE` | `HARDWARE`
+* Parity -> `enum class Parity` : `NONE` | `ODD` | `EVEN`
+* Stop bits -> `enum class StopBits` : `ONE` | `ONE_POINT_FIVE` | `TWO`
 
 An object of this type should be provided to the `configure` to apply the settings to an open serial port.
 The type has sane defaults that apply to most devices.
