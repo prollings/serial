@@ -91,7 +91,6 @@ namespace serial {
 			TCHAR* keyPath = (TCHAR*)"SYSTEM\\CurrentControlSet\\Services\\FTDIBUS\\Enum";
 			HKEY key;
 			auto r = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyPath, 0, KEY_READ, &key);
-			std::vector<std::string> subkeys;
 			if (r)
 			{
 				return subkeys;
@@ -100,6 +99,7 @@ namespace serial {
 			DWORD type;
 			DWORD count;
 			DWORD countSize = sizeof(DWORD);
+			char** subkeys
 			r = RegQueryValueEx(key, "Count", NULL, &type, (LPBYTE)&count, &countSize);
 			DWORD portInfoSize = 140;
 			TCHAR portInfo[portInfoSize];
