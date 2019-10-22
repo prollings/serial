@@ -79,6 +79,23 @@ namespace serial {
 		StopBits    stop_bits    = StopBits::ONE;
 	};
 
+	enum class Err {
+		NONE,
+		DISCONNECT,
+		INVALID_DEVICE,
+		INVALID_BAUD,
+		INVALID_CHAR_SIZE,
+		INVALID_STOP_BITS,
+		TIMEOUT,
+		LATENCY,
+	};
+
+	template <typename T>
+	struct Result {
+		Err err = Err::NONE;
+		T val;
+	};
+
 #if SERIAL_OS_WINDOWS
 	using NativeHandle = HANDLE;
 #elif SERIAL_OS_LINUX
