@@ -102,7 +102,90 @@ namespace serial {
 	using NativeHandle = int;
 #endif
 
+#if SERIAL_OS_WINDOWS
+	namespace detail {
+		int get_all_device_subkeys(char*** subkeys) {
+			TCHAR* key_path = (TCHAR*)"SYSTEM\\CurrentControlSet\\Services\\FTDIBUS\\Enum";
+			HKEY key;
+			auto r = RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ, &key);
+			if (r)
+			{
+				return 0; // or -1?
+			}
+
+			DWORD type;
+			DWORD count;
+			DWORD count_size = sizeof(DWORD);
+			r = RegQueryValueEx(key, "Count", NULL, &type, (LPBYTE)&count, &count_size);
+			*subkeys = new char*[count];
+			DWORD port_info_size = 140;
+			TCHAR port_info[port_info_size];
+			for (int iii = 0; iii < count; iii++)
+			{
+				char num[10];
+				sprintf(num, "%d", iii);
+				RegQueryValueEx(
+					key, num, NULL, &type, (LPBYTE)&port_info, &port_info_size
+				);
+
+				int port_info_len = strlen(port_info) - 4;
+				char* subkey = new char[port_info_len + 1];
+				strcpy(subkey, &port_info[4]);
+				subkey[port_info_len] = 'A';
+				subkey[strcspn(subkey, "&")] = '+';
+				subkey[strcspn(subkey, "\\")] = '+';
+				subkeys[iii] = &subkey;
+			}
+			RegCloseKey(key);
+			return count;
+		}
+
+		HKEY open_device_params(char* port_name) {
+			char** device_subkeys;
+			auto device_count = get_all_device_subkeys(&device_subkeys);
+			HKEY key;
+			TCHAR* keypath = (TCHAR*)"SYSTEM\\CurrentControlSet\\Enum\\FTDIBUS";
+			long r = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keypath, 0, KEY_READ, &key);
+			if (r) {
+				// no drives
+			}
+
+			int index = 0;
+			HKEY read_only_key = 0, param_key = 0;
+			for (int iii = 0; iii < device_count; iii++) {
+				char* subkey = device_subkeys[iii];
+				TCHAR param_path[100];
+				snprintf(param_path, 100, "%s\\0000\\Device Parameters", subkey);
+				r = RegOpenKeyEx(key, param_path, 0, KEY_READ, &read_only_key);
+				if (r) {
+					continue;
+				}
+				DWORD reg_port_name_size = 10;
+				TCHAR reg_port_name[reg_port_name_size];
+				DWORD type;
+				r = RegQueryValueEx(
+					read_only_key, "PortName", NULL, &type, (LPBYTE)&reg_port_name, &reg_port_name_size
+				);
+				bool names_match = strcmp(port_name, reg_port_name) == 0;
+				if (!r && names_match) {
+					r = RegOpenKeyEx(read_only_key, NULL, 0, KEY_READ | KEY_SET_VALUE, &param_key);
+					if (r) {
+						// admin priv error
+					}
+				}
+				RegCloseKey(read_only_key);
+				if (param_key) {
+					break;
+				}
+			}
+			RegCloseKey(key);
+			return param_key;
+		}
+	}
+#endif
+
 	struct SerialPort {
+		char* path;
 		NativeHandle handle;
 		Settings settings;
 	};
@@ -147,6 +230,7 @@ namespace serial {
 		}
 
 		return SerialPort {
+			.path = device,
 			.handle = handle,
 			.settings = Settings(),
 		};
@@ -156,6 +240,7 @@ namespace serial {
 			// error out
 		}
 		return SerialPort {
+			.path = device,
 			.handle = fd,
 			.settings = Settings(),
 		};
@@ -360,44 +445,15 @@ namespace serial {
 
 	void set_low_latency(SerialPort& sp, bool ll) {
 #if SERIAL_OS_WINDOWS
-		auto connected_devices = /* :( */;
-		HKEY key;
-		TCHAR* keypath = (TCHAR*)"SYSTEM\\CurrentControlSet\\Enum\\FTDIBUS";
-		long r = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keypath, 0, KEY_READ, &key);
-		if (r) {
-			// no drives
-		}
-
-		int index = 0;
-		HKEY read_only_key = 0, param_key = 0;
-		for (auto& subkey : connected_devs) {
-			TCHAR param_path[100];
-			snprintf(param_path, 100, "%s\\0000\\Device Parameters", &subkey[0]);
-			r = RegOpenKeyEx(key, param_path, 0, KEY_READ, &read_only_key);
-			if (r) {
-				continue;
-			}
-			DWORD reg_port_name_size = 10;
-			TCHAR reg_port_name[reg_port_name_size];
-			DWORD type;
-			r = RegQueryValueEx(
-				read_only_key, "PortName", NULL, &type, (LPBYTE)&req_port_name, &reg_port_name_size
-			);
-			bool names_match = strcmp(&port_name[0], reg_port_name) == 0;
-			if (!r && names_match) {
-				r = RegOpenKeyEx(read_only_key, NULL, 0, KEY_READ | KEY_SET_VALUE, &param_key);
-				if (r) {
-					// admin priv error
-				}
-			}
-			RegCloseKey(read_only_key);
-			if (param_key) {
-				break;
-			}
+		HKEY key = detail::open_device_params(sp.path);
+		int r = RegSetValueEx(
+			key, "LatencyTimer", 0, REG_DWORD, (LPBYTE)&latency, sizeof(latency)
+		);
+		if (r)
+		{
+			// error out
 		}
 		RegCloseKey(key);
-		return param_key;
-	}
 #elif SERIAL_OS_LINUX
 		serial_struct ser;
 		ioctl(sp.handle, TIOCGSERIAL, &ser);
