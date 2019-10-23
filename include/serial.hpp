@@ -88,27 +88,27 @@ namespace serial {
 #if SERIAL_OS_WINDOWS
 	namespace detail {
 		int get_all_device_subkeys(char*** subkeys) {
-			TCHAR* keyPath = (TCHAR*)"SYSTEM\\CurrentControlSet\\Services\\FTDIBUS\\Enum";
+			TCHAR* key_path = (TCHAR*)"SYSTEM\\CurrentControlSet\\Services\\FTDIBUS\\Enum";
 			HKEY key;
-			auto r = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyPath, 0, KEY_READ, &key);
+			auto r = RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ, &key);
 			if (r)
 			{
-				return nullptr;
+				return 0; // or -1?
 			}
 
 			DWORD type;
 			DWORD count;
-			DWORD countSize = sizeof(DWORD);
-			r = RegQueryValueEx(key, "Count", NULL, &type, (LPBYTE)&count, &countSize);
-			char** = new char* [count];
-			DWORD portInfoSize = 140;
-			TCHAR portInfo[portInfoSize];
+			DWORD count_size = sizeof(DWORD);
+			r = RegQueryValueEx(key, "Count", NULL, &type, (LPBYTE)&count, &count_size);
+			*subkeys = new char*[count];
+			DWORD port_info_size = 140;
+			TCHAR port_info[port_info_size];
 			for (int iii = 0; iii < count; iii++)
 			{
 				char num[10];
 				sprintf(num, "%d", iii);
 				RegQueryValueEx(
-					key, num, NULL, &type, (LPBYTE)&portInfo, &portInfoSize
+					key, num, NULL, &type, (LPBYTE)&port_info, &port_info_size
 				);
 
 				int port_info_len = strlen(port_info) - 4;
@@ -117,13 +117,15 @@ namespace serial {
 				subkey[port_info_len] = 'A';
 				subkey[strcspn(subkey, "&")] = '+';
 				subkey[strcspn(subkey, "\\")] = '+';
+				subkeys[iii] = &subkey;
 			}
 			RegCloseKey(key);
-			return subkeys;
+			return count;
 		}
 
 		HKEY open_device_params(char* port_name) {
-			auto connected_devices = /* :( */;
+			char** device_subkeys;
+			auto device_count = get_all_device_subkeys(&device_subkeys);
 			HKEY key;
 			TCHAR* keypath = (TCHAR*)"SYSTEM\\CurrentControlSet\\Enum\\FTDIBUS";
 			long r = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keypath, 0, KEY_READ, &key);
@@ -133,9 +135,10 @@ namespace serial {
 
 			int index = 0;
 			HKEY read_only_key = 0, param_key = 0;
-			for (auto& subkey : connected_devs) {
+			for (int iii = 0; iii < device_count; iii++) {
+				char* subkey = device_subkeys[iii];
 				TCHAR param_path[100];
-				snprintf(param_path, 100, "%s\\0000\\Device Parameters", &subkey[0]);
+				snprintf(param_path, 100, "%s\\0000\\Device Parameters", subkey);
 				r = RegOpenKeyEx(key, param_path, 0, KEY_READ, &read_only_key);
 				if (r) {
 					continue;
