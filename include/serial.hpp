@@ -87,33 +87,36 @@ namespace serial {
 
 #if SERIAL_OS_WINDOWS
 	namespace detail {
-		int get_all_device_subkeys(char** subkeys) {
+		int get_all_device_subkeys(char*** subkeys) {
 			TCHAR* keyPath = (TCHAR*)"SYSTEM\\CurrentControlSet\\Services\\FTDIBUS\\Enum";
 			HKEY key;
 			auto r = RegOpenKeyEx(HKEY_LOCAL_MACHINE, keyPath, 0, KEY_READ, &key);
 			if (r)
 			{
-				return subkeys;
+				return nullptr;
 			}
 
 			DWORD type;
 			DWORD count;
 			DWORD countSize = sizeof(DWORD);
-			char** subkeys
 			r = RegQueryValueEx(key, "Count", NULL, &type, (LPBYTE)&count, &countSize);
+			char** = new char* [count];
 			DWORD portInfoSize = 140;
 			TCHAR portInfo[portInfoSize];
 			for (int iii = 0; iii < count; iii++)
 			{
+				char num[10];
+				sprintf(num, "%d", iii);
 				RegQueryValueEx(
-					key, std::to_string(iii).c_str(), NULL, &type, (LPBYTE)&portInfo, &portInfoSize
+					key, num, NULL, &type, (LPBYTE)&portInfo, &portInfoSize
 				);
-				std::string portSubkey(portInfo);
-				portSubkey.push_back('A');
-				portSubkey.erase(0, 4);
-				portSubkey.replace(portSubkey.find_first_of("&"), 1, "+");
-				portSubkey.replace(portSubkey.find_first_of("\\"), 1, "+");
-				subkeys.push_back(portSubkey);
+
+				int port_info_len = strlen(port_info) - 4;
+				char* subkey = new char[port_info_len + 1];
+				strcpy(subkey, &port_info[4]);
+				subkey[port_info_len] = 'A';
+				subkey[strcspn(subkey, "&")] = '+';
+				subkey[strcspn(subkey, "\\")] = '+';
 			}
 			RegCloseKey(key);
 			return subkeys;
