@@ -493,11 +493,11 @@ namespace serial {
 	int read(SerialPort& sp, char* buf, int length, int timeout) {
 #if SERIAL_OS_WINDOWS
 		COMMTIMEOUTS timeouts = {
-			ReadIntervalTimeout = timeout,
-			ReadTotalTimeoutConstant = timeout,
-			ReadTotalTimeoutMultiplier = 0,
-			WriteTotalTimeoutConstant = timeout,
-			WriteTotalTimeoutMultiplier = 0,
+			.ReadIntervalTimeout = timeout,
+			.ReadTotalTimeoutConstant = timeout,
+			.ReadTotalTimeoutMultiplier = 0,
+			.WriteTotalTimeoutConstant = timeout,
+			.WriteTotalTimeoutMultiplier = 0,
 		};
 		if (!SetCommTimeouts(sp.handle, &timeouts)) {
 			DWORD last_error = GetLastError();
@@ -556,11 +556,11 @@ namespace serial {
 	void write(SerialPort& sp, char* buf, int length, int timeout) {
 #if SERIAL_OS_WINDOWS
 		COMMTIMEOUTS timeouts = {
-			ReadIntervalTimeout = timeout,
-			ReadTotalTimeoutConstant = timeout,
-			ReadTotalTimeoutMultiplier = 0,
-			WriteTotalTimeoutConstant = timeout,
-			WriteTotalTimeoutMultiplier = 0,
+			.ReadIntervalTimeout = timeout,
+			.ReadTotalTimeoutConstant = timeout,
+			.ReadTotalTimeoutMultiplier = 0,
+			.WriteTotalTimeoutConstant = timeout,
+			.WriteTotalTimeoutMultiplier = 0,
 		};
 		if (!SetCommTimeouts(handles, &timeouts)) {
 			DWORD last_error = GetLastError();
