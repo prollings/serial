@@ -571,7 +571,7 @@ namespace serial {
 #if SERIAL_OS_WINDOWS
 		COMMTIMEOUTS timeouts;
 		if (timeout == -1) {
-			timeouts.WriteTotalTimeoutConstant = DWORDMAX;
+			timeouts.WriteTotalTimeoutConstant = MAXDWORD;
 			timeouts.WriteTotalTimeoutMultiplier = 0;
 		} else if (timeout == 0) {
 			timeouts.WriteTotalTimeoutConstant = 0;
