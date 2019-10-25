@@ -498,9 +498,21 @@ namespace serial {
 	int read(SerialPort& sp, char* buf, int length, int timeout) {
 #if SERIAL_OS_WINDOWS
 		COMMTIMEOUTS timeouts;
-		timeouts.ReadIntervalTimeout = timeout;
-		timeouts.ReadTotalTimeoutConstant = timeout;
-		timeouts.ReadTotalTimeoutMultiplier = 0;
+		if (timeout == -1) {
+			timeouts.ReadIntervalTimeout = 0;
+			timeouts.ReadTotalTimeoutConstant = 0;
+			timeouts.ReadTotalTimeoutMultiplier = 0;
+		} else if (timeout == 0) {
+			timeouts.ReadIntervalTimeout = MAXDWORD;
+			timeouts.ReadTotalTimeoutConstant = 0;
+			timeouts.ReadTotalTimeoutMultiplier = 0;
+		} else if (timeout > 0) {
+			timeouts.ReadIntervalTimeout = 0;
+			timeouts.ReadTotalTimeoutConstant = (DWORD)timeout;
+			timeouts.ReadTotalTimeoutMultiplier = 0;
+		} else {
+			// invalid timeout error out
+		}
 		if (!SetCommTimeouts(sp.handle, &timeouts)) {
 			DWORD last_error = GetLastError();
 			CloseHandle(sp.handle);
