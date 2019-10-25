@@ -559,9 +559,9 @@ namespace serial {
 		COMMTIMEOUTS timeouts;
 		timeouts.WriteTotalTimeoutConstant = timeout;
 		timeouts.WriteTotalTimeoutMultiplier = 0;
-		if (!SetCommTimeouts(handles, &timeouts)) {
+		if (!SetCommTimeouts(sp.handle, &timeouts)) {
 			DWORD last_error = GetLastError();
-			CloseHandle(handle);
+			CloseHandle(sp.handle);
 			// error out
 		}
 		DWORD written = 0;
