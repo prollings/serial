@@ -570,8 +570,18 @@ namespace serial {
 	void write(SerialPort& sp, char* buf, int length, int timeout) {
 #if SERIAL_OS_WINDOWS
 		COMMTIMEOUTS timeouts;
-		timeouts.WriteTotalTimeoutConstant = timeout;
-		timeouts.WriteTotalTimeoutMultiplier = 0;
+		if (timeout == -1) {
+			timeouts.WriteTotalTimeoutConstant = DWORDMAX;
+			timeouts.WriteTotalTimeoutMultiplier = 0;
+		} else if (timeout == 0) {
+			timeouts.WriteTotalTimeoutConstant = 0;
+			timeouts.WriteTotalTimeoutMultiplier = 0;
+		} else if (timeout > 0) {
+			timeouts.WriteTotalTimeoutConstant = (DWORD)timeout;
+			timeouts.WriteTotalTimeoutMultiplier = 0;
+		} else {
+			// invalid timeout error out
+		}
 		if (!SetCommTimeouts(sp.handle, &timeouts)) {
 			DWORD last_error = GetLastError();
 			CloseHandle(sp.handle);
