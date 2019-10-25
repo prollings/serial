@@ -445,6 +445,10 @@ namespace serial {
 
 	void set_low_latency(SerialPort& sp, bool ll) {
 #if SERIAL_OS_WINDOWS
+		int latency = 16;
+		if (ll) {
+			latency = 1;
+		}
 		HKEY key = detail::open_device_params(sp.path);
 		int r = RegSetValueEx(
 			key, "LatencyTimer", 0, REG_DWORD, (LPBYTE)&latency, sizeof(latency)
