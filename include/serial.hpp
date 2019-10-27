@@ -573,7 +573,10 @@ namespace serial {
 #endif
 	}
 
-	void write(SerialPort& sp, char* buf, int length, int timeout) {
+	Err write(SerialPort& sp, char* buf, int length, int timeout) {
+		if (timeout < -1) {
+			return Err::INVALID_TIMEOUT;
+		}
 #if SERIAL_OS_WINDOWS
 		COMMTIMEOUTS timeouts;
 		if (timeout == -1) {
@@ -585,8 +588,6 @@ namespace serial {
 		} else if (timeout > 0) {
 			timeouts.WriteTotalTimeoutConstant = (DWORD)timeout;
 			timeouts.WriteTotalTimeoutMultiplier = 0;
-		} else {
-			// invalid timeout error out
 		}
 		if (!SetCommTimeouts(sp.handle, &timeouts)) {
 			DWORD last_error = GetLastError();
@@ -629,8 +630,7 @@ namespace serial {
 			if (ready == -1) {
 				// error
 			} else if (ready == 0) {
-				// timeout
-				break;
+				return Err::TIMEOUT;
 			}
 			if (FD_ISSET(sp.handle, &wfds)) {
 				written_count += bytes_written;
