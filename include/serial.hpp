@@ -434,7 +434,7 @@ namespace serial {
 			// error out
 		}
 #endif
-		return Err:NONE;
+		return Err::NONE;
 	}
 
 	Err set_low_latency(SerialPort& sp, bool ll) {
@@ -490,7 +490,7 @@ namespace serial {
 
 	Result<int> read(SerialPort& sp, char* buf, int length, int timeout) {
 		if (timeout < -1) {
-			return Result {
+			return {
 				.err = Err::INVALID_TIMEOUT,
 				.val = -1,
 			};
@@ -517,16 +517,16 @@ namespace serial {
 		}
 		DWORD bytes_read = 0;
 		ReadFile(sp.handle, buf, length, &bytes_read, NULL);
-		return Result {
+		return {
 			.err = Err::NONE,
-			.val = bytes_read,
+			.val = (int)bytes_read,
 		};
 #elif SERIAL_OS_LINUX
 		if (timeout == 0) {
 			// non-blocking
-			return Result {
+			return {
 				.err = Err::NONE,
-				.val = ::read(sp.handle, buf, length),
+				.val = (int)::read(sp.handle, buf, length),
 			};
 		}
 
@@ -566,10 +566,10 @@ namespace serial {
 				break;
 			}
 		}
-		return Result {
+		return {
 			.err = Err::NONE,
 			.val = read_count,
-		}
+		};
 #endif
 	}
 
@@ -602,7 +602,7 @@ namespace serial {
 			if (wlen != length) {
 				// error out
 			}
-			return;
+			return Err::NONE;
 		}
 		fd_set wfds;
 		FD_ZERO(&wfds);
@@ -639,6 +639,7 @@ namespace serial {
 			}
 		}
 #endif
+		return Err::NONE;
 	}
 } // serial
 
