@@ -229,23 +229,17 @@ namespace serial {
 			CloseHandle(handle);
 			// error out
 		}
-
+#elif SERIAL_OS_LINUX
+		int handle = ::open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);
+		if (handle < 0) {
+			// error out
+		}
+#endif
 		return SerialPort {
 			.path = device,
 			.handle = handle,
 			.settings = Settings(),
 		};
-#elif SERIAL_OS_LINUX
-		int fd = ::open(device, O_RDWR | O_NOCTTY | O_NONBLOCK);
-		if (fd < 0) {
-			// error out
-		}
-		return SerialPort {
-			.path = device,
-			.handle = fd,
-			.settings = Settings(),
-		};
-#endif
 	}
 
 	void configure(SerialPort& sp, Settings settings) {
