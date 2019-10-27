@@ -437,7 +437,7 @@ namespace serial {
 		return Err:NONE;
 	}
 
-	void set_low_latency(SerialPort& sp, bool ll) {
+	Err set_low_latency(SerialPort& sp, bool ll) {
 #if SERIAL_OS_WINDOWS
 		int latency = 16;
 		if (ll) {
@@ -447,8 +447,7 @@ namespace serial {
 		int r = RegSetValueEx(
 			key, "LatencyTimer", 0, REG_DWORD, (LPBYTE)&latency, sizeof(latency)
 		);
-		if (r)
-		{
+		if (r) {
 			// error out
 		}
 		RegCloseKey(key);
@@ -457,6 +456,7 @@ namespace serial {
 		ioctl(sp.handle, TIOCGSERIAL, &ser);
 		ser.flags |= ll ? ASYNC_LOW_LATENCY : ~ASYNC_LOW_LATENCY;
 #endif
+		return Err::NONE;
 	}
 
 	int in_waiting(SerialPort& sp) {
