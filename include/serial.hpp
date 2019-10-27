@@ -488,7 +488,13 @@ namespace serial {
 #endif
 	}
 
-	int read(SerialPort& sp, char* buf, int length, int timeout) {
+	Result<int> read(SerialPort& sp, char* buf, int length, int timeout) {
+		if (timeout < -1) {
+			return Result {
+				.err = Err::INVALID_TIMEOUT,
+				.val = -1,
+			};
+		}
 #if SERIAL_OS_WINDOWS
 		COMMTIMEOUTS timeouts;
 		if (timeout == -1) {
@@ -503,8 +509,6 @@ namespace serial {
 			timeouts.ReadIntervalTimeout = 0;
 			timeouts.ReadTotalTimeoutConstant = (DWORD)timeout;
 			timeouts.ReadTotalTimeoutMultiplier = 0;
-		} else {
-			// invalid timeout error out
 		}
 		if (!SetCommTimeouts(sp.handle, &timeouts)) {
 			DWORD last_error = GetLastError();
@@ -513,11 +517,17 @@ namespace serial {
 		}
 		DWORD bytes_read = 0;
 		ReadFile(sp.handle, buf, length, &bytes_read, NULL);
-		return bytes_read;
+		return Result {
+			.err = Err::NONE,
+			.val = bytes_read,
+		};
 #elif SERIAL_OS_LINUX
 		if (timeout == 0) {
 			// non-blocking
-			return ::read(sp.handle, buf, length);
+			return Result {
+				.err = Err::NONE,
+				.val = ::read(sp.handle, buf, length),
+			};
 		}
 
 		fd_set rfds;
@@ -556,7 +566,10 @@ namespace serial {
 				break;
 			}
 		}
-		return read_count;
+		return Result {
+			.err = Err::NONE,
+			.val = read_count,
+		}
 #endif
 	}
 
