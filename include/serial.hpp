@@ -242,7 +242,7 @@ namespace serial {
 		};
 	}
 
-	void configure(SerialPort& sp, Settings settings) {
+	Err configure(SerialPort& sp, Settings settings) {
 #if SERIAL_OS_WINDOWS
 		DCB dcb;
 		dcb.DCBlength = sizeof(dcb);
@@ -359,15 +359,14 @@ namespace serial {
 			case 3500000: br = B3500000; break;
 			case 4000000: br = B4000000; break;
 			default:
-				//error
-				break;
+				return Err::INVALID_BAUD;
 		}
 		cfsetospeed(&tty, br);
 		cfsetispeed(&tty, br);
 
 		// char size
 		if (settings.char_size < 5 || settings.char_size > 8) {
-			// error out
+			return Err::INVALID_CHAR_SIZE;
 		}
 		switch (settings.char_size) {
 			case 5:
@@ -428,14 +427,14 @@ namespace serial {
 				tty.c_cflag |= CSTOPB;
 				break;
 			case StopBits::ONE_POINT_FIVE:
-				// linux no supporty
-				break;
+				return Err::INVALID_STOP_BITS;
 		}
 
 		if (tcsetattr(fd, TCSANOW, &tty) != 0) {
 			// error out
 		}
 #endif
+		return Err:NONE;
 	}
 
 	void set_low_latency(SerialPort& sp, bool ll) {
