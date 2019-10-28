@@ -573,9 +573,12 @@ namespace serial {
 #endif
 	}
 
-	Err write(SerialPort& sp, char* buf, int length, int timeout) {
+	Result<int> write(SerialPort& sp, char* buf, int length, int timeout) {
 		if (timeout < -1) {
-			return Err::INVALID_TIMEOUT;
+			return { 
+				.err = Err::INVALID_TIMEOUT,
+				.val = -1,
+			};
 		}
 #if SERIAL_OS_WINDOWS
 		COMMTIMEOUTS timeouts;
@@ -594,15 +597,18 @@ namespace serial {
 			CloseHandle(sp.handle);
 			// error out
 		}
-		DWORD written = 0;
-		bool status = WriteFile(sp.handle, buf, length, &written, NULL);
+		DWORD written_count = 0;
+		bool status = WriteFile(sp.handle, buf, length, &written_count, NULL);
 #elif SERIAL_OS_LINUX
 		if (timeout == 0) {
 			int wlen = ::write(sp.handle, buf, length);
 			if (wlen != length) {
 				// error out
 			}
-			return Err::NONE;
+			return {
+				.err = Err::NONE,
+				.val = -1,
+			};
 		}
 		fd_set wfds;
 		FD_ZERO(&wfds);
@@ -630,7 +636,10 @@ namespace serial {
 			if (ready == -1) {
 				// error
 			} else if (ready == 0) {
-				return Err::TIMEOUT;
+				return {
+					.err = Err::TIMEOUT,
+					.val = written_count,
+				};
 			}
 			if (FD_ISSET(sp.handle, &wfds)) {
 				written_count += bytes_written;
@@ -639,7 +648,10 @@ namespace serial {
 			}
 		}
 #endif
-		return Err::NONE;
+		return {
+			.err = Err::NONE,
+			.val = (int)written_count,
+		};
 	}
 } // serial
 
