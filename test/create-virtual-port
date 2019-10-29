@@ -1,0 +1,3 @@
+#!/bin/bash
+
+socat -dd pty,raw,echo=0,b19200 ptw,raw,echo=0,b19200
