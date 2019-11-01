@@ -186,12 +186,12 @@ namespace serial {
 #endif
 
 	struct SerialPort {
-		char* path;
+		const char* path;
 		NativeHandle handle;
 		Settings settings;
 	};
 
-	SerialPort open(char* device) {
+	SerialPort open(const char* device) {
 #if SERIAL_OS_WINDOWS
 		HANDLE handle = CreateFileA(
 			device, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, 0, 0
@@ -573,7 +573,7 @@ namespace serial {
 #endif
 	}
 
-	Result<int> write(SerialPort& sp, char* buf, int length, int timeout) {
+	Result<int> write(SerialPort& sp, const char* buf, int length, int timeout) {
 		if (timeout < -1) {
 			return { 
 				.err = Err::INVALID_TIMEOUT,
