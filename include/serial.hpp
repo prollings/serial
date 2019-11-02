@@ -550,8 +550,10 @@ namespace serial {
 			if (ready == -1) {
 				// error out
 			} else if (ready == 0) {
-				// timeout occured
-				break;
+				return {
+					.err = Err::TIMEOUT,
+					.val = read_count,
+				};
 			}
 			if (FD_ISSET(sp.handle, &rfds)) {
 				int bytes_read = ::read(sp.handle, buf, length - read_count);
