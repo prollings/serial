@@ -522,14 +522,6 @@ namespace serial {
 			.val = (int)bytes_read,
 		};
 #elif SERIAL_OS_LINUX
-		if (timeout == 0) {
-			// non-blocking
-			return {
-				.err = Err::NONE,
-				.val = (int)::read(sp.handle, buf, length),
-			};
-		}
-
 		fd_set rfds;
 		FD_ZERO(&rfds);
 		FD_SET(sp.handle, &rfds);
@@ -541,6 +533,9 @@ namespace serial {
 		timeval* tvp = &tv;
 		if (timeout == -1) {
 			tvp = nullptr;
+		} else if (timeout == 0) {
+			tv.tv_sec = 0;
+			tv.tv_usec = 0;
 		}
 
 		int read_count = 0;
