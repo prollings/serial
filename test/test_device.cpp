@@ -13,10 +13,10 @@ int main() {
 	char character = 0;
 	bool running = true;
 	while (running) {
-		auto res = serial::read(sp, &character, 1, 0);
+		auto res = serial::read(sp, &character, 1, 100);
 		if (res.val == 1) {
 			buf.push_back(character);
-			std::cout << "Buffer: " << buf << "\n";
+			std::cout << "dev buf: " << buf << "\n";
 			std::string ret_buf;
 			bool buffer_complete = false;
 			if (buf == "test_1") {
@@ -32,9 +32,10 @@ int main() {
 			}
 			if (buffer_complete) {
 				buf.clear();
-				serial::write(sp, ret_buf.data(), ret_buf.length(), -1);
+				auto res = serial::write(sp, ret_buf.data(), ret_buf.length(), 0);
+				std::cout << "device tx err: " << (int)res.err << "\n";
 			}
 		}
 	}
-	std::cout << "Device finished\n";
+	std::cout << "device finished\n";
 }
