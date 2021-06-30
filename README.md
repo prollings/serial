@@ -1,5 +1,3 @@
-# DON'T USE THIS LIBRARY; IT DOESN'T WORK YET
-
 # serial
 Header-only serial library for Windows and Linux.
 
